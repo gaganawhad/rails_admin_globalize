@@ -17,11 +17,16 @@
 = javascript_include_tag "rails_admin/custom/rails_admin_globalize.js"
 = stylesheet_link_tag "rails_admin/custom/rails_admin_globalize.css"
 
-%h2= I18n.translate("admin.actions.globalize.title")
-%p= raw I18n.translate("admin.actions.globalize.subtitle", :locale_name => "<strong>#{I18n.locale}</strong>".upcase)
+%h2= "Translating into #{@target_locale.upcase}"
+
+.row-fluid
+  .span2
+    = select_tag 'target_locale', options_for_select(@already_translated_locales), :prompt => "Already Translated Locales", :id => "target_locale_already_select", :"data-target-url" => rails_admin.globalize_path(@object.class.to_s.split("::").map(&:underscore).join("~"), @object.id)
+  .span2
+    = select_tag 'target_locale', options_for_select(@not_yet_translated_locales), :prompt => "Not-Yet-Translated Locales", :id => "target_locale_not_yet_select", :"data-target-url" => rails_admin.globalize_path(@object.class.to_s.split("::").map(&:underscore).join("~"), @object.id)
 
 = form_for @object, :url => rails_admin.globalize_path(@object.class.to_s.split("::").map(&:underscore).join("~"), @object.id), :html => {:class => 'globalize-form'} do |form|
-  = select_tag 'target_locale', options_for_select(  @available_locales, @target_locale ), :id => "target_locale_select", :"data-target-url" => rails_admin.globalize_path(@object.class.to_s.split("::").map(&:underscore).join("~"), @object.id)
+  = hidden_field_tag 'target_locale', @target_locale
 
   - rails_admin_fields.keys.each do |t|
     %h5 #{@object.class.human_attribute_name(t.to_sym)}:
@@ -30,7 +35,7 @@
         .controls.well{ :class => "#{rails_admin_fields[t].type}_type" }
           .original-content= raw @object.send(t)
       .span8
-        - I18n.with_locale target_locale do
+        - Globalize.with_locale target_locale do
           = render :partial => "globalize_field", :locals => { :object => @object, :form => form, :field => rails_admin_fields[t] }
   - if @associated_translations
     - @associated_translations.each do |association|
@@ -52,7 +57,7 @@
                   .controls.well{ :class => "#{rails_admin_fields[t].type}_type" }
                     .original-content= raw obj.send(t)
                 .span8
-                  - I18n.with_locale target_locale do
+                  - Globalize.with_locale target_locale do
                     = render :partial => "globalize_field", :locals => {:field => field, :object => obj, :form => subform}
 
           - @sub_associated_translations = collection.first.class.associated_model_to_globalize rescue nil
@@ -76,7 +81,7 @@
                         .controls.well{ :class => "#{associated_rails_admin_fields[t].type}_type" }
                           .original-content= raw sub_obj.send(t)
                       .span8
-                        - I18n.with_locale target_locale do
+                        - Globalize.with_locale target_locale do
                           = render :partial => "globalize_field", :locals => {:field => field, :object => sub_obj, :form => subsubform}
 
             - if @sub_associated_translations[:has_one].present?

@@ -34,7 +34,7 @@ module RailsAdmin
         end
 
         register_instance_option :http_methods do
-          [:get,:put]
+          [:get,:patch]
         end
 
         register_instance_option :controller do
@@ -43,18 +43,21 @@ module RailsAdmin
             @available_locales = (I18n.available_locales - [I18n.locale])
             @available_locales = @object.available_locales if @object.respond_to?("available_locales")
 
+            @already_translated_locales = []
+            @already_translated_locales = @object.translated_locales.map(&:to_s) if @object.respond_to?("translated_locales")
+
+            @not_yet_translated_locales = @available_locales - @already_translated_locales
+
             if request.get?
               @target_locale = params[:target_locale] || @available_locales.first || I18n.locale
 
             else
-              loc = @current_locale = I18n.locale
-              @target_locale = params[:target_locale]
-              I18n.locale = @target_locale
-              p = params[@abstract_model.param_key]
-              p = p.permit! if @object.class.include?(ActiveModel::ForbiddenAttributesProtection) rescue nil
-              result = @object.update_attributes(p)
+              result = ::Globalize.with_locale params[:target_locale] do
+                p = params[@abstract_model.param_key]
+                p = p.permit! if @object.class.include?(ActiveModel::ForbiddenAttributesProtection) rescue nil
+                @object.update_attributes(p)
+              end
 
-              I18n.locale = loc
               if result
                 flash[:notice] = I18n.t("rails_admin.globalize.success")
                 redirect_to back_or_index
