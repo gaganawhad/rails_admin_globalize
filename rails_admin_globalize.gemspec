@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency "rails", ">= 3.1"
   s.add_dependency "rails_admin"
-  s.add_dependency "globalize", ">= 4.0.0.alpha.2"
+  s.add_dependency "globalize"
   s.add_dependency "haml-rails"
   s.add_dependency "coffee-rails"
   s.add_dependency "sass-rails"
